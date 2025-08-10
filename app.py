@@ -1,38 +1,44 @@
 from flask import Flask, request, jsonify
-import requests
-from bs4 import BeautifulSoup
-import os
+from google_play_scraper import app as gp_app
+import re
 
 app = Flask(__name__)
 
-@app.route("/get-app-info")
+def extract_package_name(url):
+    match = re.search(r"id=([a-zA-Z0-9._]+)", url)
+    if match:
+        return match.group(1)
+    return None
+
+@app.route("/get-app-info", methods=["GET"])
 def get_app_info():
     url = request.args.get("url")
+    if url:
+        package_name = extract_package_name(url)
+    else:
+        package_name = "com.instagram.android"  # پیش‌فرض
 
-    if not url or "play.google.com" not in url:
-        return jsonify({"error": "Invalid or missing URL."}), 400
+    if not package_name:
+        return jsonify({"error": "Invalid URL"}), 400
 
     try:
-        headers = {
-            "User-Agent": "Mozilla/5.0"
+        app_details = gp_app(package_name, lang="en", country="us")
+
+        data = {
+            "appName": app_details.get("title"),
+            "companyName": app_details.get("developer"),
+            "downloads": app_details.get("installs"),
+            "rating": str(app_details.get("score")),
+            "ageRating": app_details.get("contentRating"),
+            "reviews": str(app_details.get("reviews")),
+            "iconUrl": app_details.get("icon"),
+            "screenshots": app_details.get("screenshots"),
+            "updatedDate": app_details.get("updated")
         }
-        response = requests.get(url, headers=headers)
-        soup = BeautifulSoup(response.text, 'html.parser')
-
-        title = soup.find("h1").text.strip()
-        description = soup.find("meta", {"name": "description"})['content']
-        icon_url = soup.find("img")["src"]
-
-        return jsonify({
-            "title": title,
-            "description": description,
-            "icon_url": icon_url,
-            "source_url": url
-        })
+        return jsonify(data)
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=5000)
