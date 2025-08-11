@@ -28,7 +28,7 @@ def get_app_info():
             "appName": app_details.get("title"),
             "companyName": app_details.get("developer"),
             "downloads": app_details.get("installs"),
-            "rating": str(app_details.get("score")),
+            "rating": str(app_details.get("histogram")),
             "ageRating": app_details.get("contentRating"),
             "reviews": str(app_details.get("reviews")),
             "iconUrl": app_details.get("icon"),
@@ -42,3 +42,4 @@ def get_app_info():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
+
