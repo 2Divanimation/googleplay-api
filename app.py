@@ -33,7 +33,12 @@ def get_app_info():
             "reviews": str(app_details.get("ratings")),
             "iconUrl": app_details.get("icon"),
             "screenshots": app_details.get("screenshots"),
-            "updatedDate": app_details.get("released")
+            "updatedDate": app_details.get("released"),
+
+            "price": str(app_details.get("price")),
+            "free": app_details.get("free"),
+            "currency": app_details.get("currency"),
+            "offersIAP": app_details.get("offersIAP")
         }
         return jsonify(data)
 
@@ -42,6 +47,7 @@ def get_app_info():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
+
 
 
 
